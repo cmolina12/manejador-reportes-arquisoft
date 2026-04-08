@@ -2,7 +2,6 @@ provider "aws" {
   region = var.region
 }
 
-# ─── VPC y RED ───────────────────────────────────────────────
 data "aws_vpc" "default" {
   default = true
 }
@@ -14,7 +13,6 @@ data "aws_subnets" "default" {
   }
 }
 
-# ─── SECURITY GROUPS ─────────────────────────────────────────
 resource "aws_security_group" "alb_sg" {
   name   = "alb-sg"
   vpc_id = data.aws_vpc.default.id
@@ -45,6 +43,13 @@ resource "aws_security_group" "app_sg" {
     security_groups = [aws_security_group.alb_sg.id]
   }
 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -58,10 +63,10 @@ resource "aws_security_group" "db_sg" {
   vpc_id = data.aws_vpc.default.id
 
   ingress {
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.app_sg.id]
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["172.31.0.0/16"]
   }
 
   egress {
@@ -77,10 +82,10 @@ resource "aws_security_group" "redis_sg" {
   vpc_id = data.aws_vpc.default.id
 
   ingress {
-    from_port       = 6379
-    to_port         = 6379
-    protocol        = "tcp"
-    security_groups = [aws_security_group.app_sg.id]
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = ["172.31.0.0/16"]
   }
 
   egress {
@@ -91,22 +96,20 @@ resource "aws_security_group" "redis_sg" {
   }
 }
 
-# ─── RDS POSTGRESQL ──────────────────────────────────────────
 resource "aws_db_instance" "postgres" {
-  identifier           = "reportes-db"
-  engine               = "postgres"
-  engine_version       = "15"
-  instance_class       = "db.t3.micro"
-  allocated_storage    = 20
-  db_name              = var.db_name
-  username             = var.db_user
-  password             = var.db_password
-  skip_final_snapshot  = true
-  publicly_accessible  = false
+  identifier             = "reportes-db"
+  engine                 = "postgres"
+  engine_version         = "15"
+  instance_class         = "db.t3.micro"
+  allocated_storage      = 20
+  db_name                = var.db_name
+  username               = var.db_user
+  password               = var.db_password
+  skip_final_snapshot    = true
+  publicly_accessible    = false
   vpc_security_group_ids = [aws_security_group.db_sg.id]
 }
 
-# ─── ELASTICACHE REDIS ───────────────────────────────────────
 resource "aws_elasticache_cluster" "redis" {
   cluster_id           = "reportes-redis"
   engine               = "redis"
@@ -117,10 +120,9 @@ resource "aws_elasticache_cluster" "redis" {
   security_group_ids   = [aws_security_group.redis_sg.id]
 }
 
-# ─── LAUNCH TEMPLATE (plantilla para las EC2 de Django) ──────
 resource "aws_launch_template" "app" {
   name_prefix   = "reportes-app-"
-  image_id      = "ami-0c02fb55956c7d316" # Amazon Linux 2 us-east-1
+  image_id      = "ami-0c02fb55956c7d316"
   instance_type = var.instance_type_app
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
@@ -138,7 +140,6 @@ resource "aws_launch_template" "app" {
   }
 }
 
-# ─── AUTO SCALING GROUP ──────────────────────────────────────
 resource "aws_autoscaling_group" "app" {
   name                = "reportes-asg"
   desired_capacity    = 2
@@ -153,7 +154,6 @@ resource "aws_autoscaling_group" "app" {
   }
 }
 
-# ─── ALB ─────────────────────────────────────────────────────
 resource "aws_lb" "app" {
   name               = "reportes-alb"
   internal           = false
