@@ -13,6 +13,19 @@ data "aws_subnets" "default" {
   }
 }
 
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"]
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 resource "aws_security_group" "alb_sg" {
   name   = "alb-sg"
   vpc_id = data.aws_vpc.default.id
@@ -122,7 +135,7 @@ resource "aws_elasticache_cluster" "redis" {
 
 resource "aws_launch_template" "app" {
   name_prefix   = "reportes-app-"
-  image_id      = "ami-0c02fb55956c7d316"
+  image_id      = data.aws_ami.ubuntu.id
   instance_type = var.instance_type_app
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {

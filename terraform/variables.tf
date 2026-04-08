@@ -3,7 +3,7 @@ variable "region" {
 }
 
 variable "instance_type_app" {
-  default = "t3.medium"
+  default = "t2.micro"
 }
 
 variable "instance_type_db" {
@@ -23,5 +23,5 @@ variable "db_password" {
 }
 
 variable "app_port" {
-  default = 8000
+  default = 8080
 }

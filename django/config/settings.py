@@ -15,7 +15,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME', 'reportes_db'),
-        'USER': os.environ.get('DB_USER', 'admin'),
+        'USER': os.environ.get('DB_USER', 'reportes_user'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'Admin1234!'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': '5432',
@@ -32,4 +32,6 @@ CACHES = {
     }
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ROOT_URLCONF = 'config.urls'
+WSGI_APPLICATION = 'config.wsgi.application'
