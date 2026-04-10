@@ -199,3 +199,43 @@ resource "aws_lb_listener" "app" {
     target_group_arn = aws_lb_target_group.app.arn
   }
 }
+
+resource "aws_security_group" "jmeter_sg" {
+  name   = "jmeter-sg"
+  vpc_id = data.aws_vpc.default.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "jmeter" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = "t3.large"
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.jmeter_sg.id]
+
+  user_data = <<-USERDATA
+    #!/bin/bash
+    apt-get update -y
+    apt-get install -y default-jdk wget git
+    wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+    tar -xzf apache-jmeter-5.6.3.tgz -C /opt
+    ln -s /opt/apache-jmeter-5.6.3/bin/jmeter /usr/local/bin/jmeter
+    git clone https://github.com/cmolina12/manejador-reportes-arquisoft.git /app
+  USERDATA
+
+  tags = {
+    Name = "jmeter-instance"
+  }
+}
