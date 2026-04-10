@@ -19,8 +19,8 @@
       </ThreadGroup>
       <hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Reporte">
-          <stringProp name="HTTPSampler.domain">reportes-alb-1955286356.us-east-1.elb.amazonaws.com</stringProp>
-          <stringProp name="HTTPSampler.port">80</stringProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,reportes-alb-1955286356.us-east-1.elb.amazonaws.com)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(port,80)}</stringProp>
           <stringProp name="HTTPSampler.path">/reporte/1/</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
