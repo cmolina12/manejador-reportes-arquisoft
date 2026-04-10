@@ -43,7 +43,7 @@ def obtener_reporte(request, reporte_id):
         }
 
     # Guardar en cache con TTL de 60 segundos
-    cache.set(cache_key, datos, timeout=60)
+    cache.set(cache_key, datos, timeout=300)
 
     return JsonResponse({
         "fuente": "base_de_datos",
